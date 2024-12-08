@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beautiful Go Todo App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-900 to-blue-900 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">To-Do List</h1>
+        <div id="task-list">
+            <div id="task-list">
+                <ul class="space-y-3 mb-6">
+                    {{range .}}
+                    <li class="flex items-center bg-gray-100 p-3 rounded-lg">
+                        <span id="task-text" class="flex-grow text-gray-800">{{.}}</span>
+                        <button id="delete-button" class="text-red-500 hover:text-red-700 focus:outline-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
+                        </button>
+                    </li>
+                    {{else}}
+                    <li class="text-center text-gray-500">No tasks yet!</li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+
+        <form id="todo-form" action="/" method="POST" class="flex flex-col">
+            <input
+                class="border border-gray-300 rounded-lg p-3 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="text" name="task" placeholder="Add a new task" required>
+            <button type="submit"
+                class="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Add Task
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Function to refresh tasks
+        async function refreshTasks() {
+            const response = await fetch('/?partial=true');
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = await response.text();
+            attachDeleteListeners();
+        }
+
+        // Form submission
+        document.getElementById('todo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            await fetch('/', {
+                method: 'POST',
+                body: formData
+            });
+            e.target.reset();
+            await refreshTasks();
+        });
+
+        // Delete functionality
+        function attachDeleteListeners() {
+            document.querySelectorAll('#delete-button').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const taskText = button.parentElement.querySelector('#task-text').textContent;
+                    const response = await fetch("/", {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ task: taskText }),
+                    });
+                    if (response.ok) {
+                        await refreshTasks();
+                    }
+                });
+            });
+        }
+
+        // Initial attachment of listeners
+        attachDeleteListeners();
+    </script>
+</body>
+
+</html>

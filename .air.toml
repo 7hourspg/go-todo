@@ -1,0 +1,7 @@
+[build]
+cmd = "go build -o ./tmp/main" # Command to build your app
+bin = "./tmp/main"             # Binary output path
+full_bin = "APP_ENV=dev ./tmp/main" # Command to run your app
+
+[log]
+level = "debug"
